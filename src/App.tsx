@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import testData from "./scripts/mock-data";
+import Table from "./components/table";
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  const [data, setData] = useState(testData);
+  const [search, setSearch] = useState("");
+  const [categories, setCategories] = useState<Record<string, boolean>>(
+    testData
+      .map((category) => category.name)
+      .reduce((prev, curr) => {
+        return { ...prev, [curr]: true };
+      }, {}),
+  );
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+      <select
+        multiple
+        onChange={(e) =>
+          setCategories({
+            ...categories,
+            [e.target.value]: !categories[e.target.value],
+          })
+        }
+      >
+        {Object.keys(categories).map((category) => (
+          <option key={category} value={category}>
+            {category}
+          </option>
+        ))}
+      </select>
+      <Table data={data} search={search} categories={categories} />;
+    </div>
+  );
 }
 
-export default App
+export default App;
