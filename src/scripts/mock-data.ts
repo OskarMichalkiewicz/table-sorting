@@ -25,5 +25,7 @@ const testData = range(0, 10).map((catId) => ({
   })),
 }));
 export type dataType = typeof testData;
+export type productType =
+  (typeof testData)[0]["subcategories"][0]["products"][0];
 
 export default testData;

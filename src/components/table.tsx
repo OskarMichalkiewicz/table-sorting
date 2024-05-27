@@ -1,46 +1,54 @@
-import { dataType } from "../scripts/mock-data";
-import TableBody from "./table-body";
+import { useRef, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import {
+  ColumnDef,
+  getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+import { productType } from "../scripts/mock-data";
 import TableHead from "./table-head";
+import TableBody from "./table-body";
 
-export default function Table({
-  data,
-  search,
-  categories,
-}: {
-  data: dataType;
-  search: string;
-  categories: Record<string, boolean>;
-}) {
+interface Props {
+  columns: ColumnDef<productType>[];
+  body: productType[];
+}
+export default function ReactTableVirtualized({ columns, body }: Props) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [data, _setData] = useState(body);
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    debugTable: true,
+  });
+
+  const { rows } = table.getRowModel();
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 34,
+    overscan: 20,
+  });
+
   return (
-    <table className="text-left border">
-      {data
-        .filter((category) => categories[category.name])
-        .map((category) => {
-          return (
-            <>
-              <TableHead rows={[[category.name]]} />
-              {category.subcategories.map((subcategory) => {
-                return (
-                  <>
-                    <TableHead
-                      rows={[
-                        [subcategory.name],
-                        Object.keys(subcategory.products[0]),
-                      ]}
-                    />
-                    <TableBody
-                      rows={subcategory.products
-                        .filter(
-                          (product) => !search || product.name.includes(search),
-                        )
-                        .map((product) => Object.values(product))}
-                    />
-                  </>
-                );
-              })}
-            </>
-          );
-        })}
-    </table>
+    <div ref={parentRef}>
+      <div className={`h-[${virtualizer.getTotalSize()}px]`}>
+        <table>
+          <TableHead headerGroups={table.getHeaderGroups()} />
+          <TableBody rows={rows} virtualizer={virtualizer} />
+        </table>
+      </div>
+    </div>
   );
 }

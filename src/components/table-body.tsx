@@ -1,13 +1,28 @@
-export default function TableBody({ rows }: { rows: (string | number)[][] }) {
+import { Row, flexRender } from "@tanstack/react-table";
+import { productType } from "../scripts/mock-data";
+import { Virtualizer } from "@tanstack/react-virtual";
+
+interface Props {
+  rows: Row<productType>[];
+  virtualizer: Virtualizer<HTMLDivElement, Element>;
+}
+export default function TableBody({ rows, virtualizer }: Props) {
   return (
     <tbody>
-      {rows.map((row) => (
-        <tr>
-          {row.map((col) => (
-            <th key={col}>{col}</th>
-          ))}
-        </tr>
-      ))}
+      {virtualizer.getVirtualItems().map((virtualRow) => {
+        const row = rows[virtualRow.index];
+        return (
+          <tr key={row.id} className={`h-[${virtualRow.size}px]`}>
+            {row.getVisibleCells().map((cell) => {
+              return (
+                <td key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              );
+            })}
+          </tr>
+        );
+      })}
     </tbody>
   );
 }
