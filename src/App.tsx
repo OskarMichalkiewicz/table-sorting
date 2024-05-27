@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
 import testData, { productType } from "./scripts/mock-data";
 import Table from "./components/table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, ColumnFiltersState } from "@tanstack/react-table";
 
 function App() {
-  const [data, setData] = useState(testData);
-  const [search, setSearch] = useState("");
+  const [data, _setData] = useState(testData);
   const [categories, setCategories] = useState<Record<string, boolean>>(
     testData
       .map((category) => category.name)
@@ -13,38 +12,38 @@ function App() {
         return { ...prev, [curr]: true };
       }, {}),
   );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const columns = useMemo<ColumnDef<productType>[]>(
     () => [
       {
         accessorKey: "index",
         header: () => <span>Id</span>,
         cell: (info) => info.getValue(),
+        enableColumnFilter: false,
       },
       {
         accessorKey: "name",
         header: () => <span>Name</span>,
         cell: (info) => info.getValue(),
+        enableColumnFilter: true,
       },
       {
         accessorKey: "price",
         header: () => <span>Price</span>,
         cell: (info) => info.getValue(),
+        enableColumnFilter: false,
       },
       {
         accessorKey: "quantity",
         header: () => <span>Quantity</span>,
         cell: (info) => info.getValue(),
+        enableColumnFilter: false,
       },
     ],
     [],
   );
   return (
     <div>
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
       <select
         multiple
         onChange={(e) =>
@@ -75,10 +74,10 @@ function App() {
                     </tr>
                     <tbody>
                       <Table
+                        setColumnFilters={setColumnFilters}
+                        columnFilters={columnFilters}
                         columns={columns}
-                        body={subcategory.products.filter((product) =>
-                          product.name.includes(search),
-                        )}
+                        body={subcategory.products}
                       />
                     </tbody>
                   </>

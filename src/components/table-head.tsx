@@ -6,25 +6,27 @@ interface Props {
 }
 export default function TableHead({ headerGroups }: Props) {
   return (
-    <thead>
-      {headerGroups.map((headerGroup) => (
-        <tr key={headerGroup.id}>
-          {headerGroup.headers.map((header) => {
-            return (
-              <th
-                key={header.id}
-                colSpan={header.colSpan}
-                style={{ width: header.getSize() }}
-              >
-                {flexRender(
-                  header.column.columnDef.header,
-                  header.getContext(),
-                )}
-              </th>
-            );
-          })}
-        </tr>
-      ))}
-    </thead>
+    <>
+      <thead>
+        {headerGroups.map((headerGroup) => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map((header) => {
+              return (
+                <th
+                  key={header.id}
+                  colSpan={header.colSpan}
+                  style={{ width: header.getSize() }}
+                >
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+                </th>
+              );
+            })}
+          </tr>
+        ))}
+      </thead>
+    </>
   );
 }

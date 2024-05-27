@@ -1,34 +1,47 @@
-import { useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
+  Column,
   ColumnDef,
+  ColumnFiltersState,
   getCoreRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
-  SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import { productType } from "../scripts/mock-data";
 import TableHead from "./table-head";
 import TableBody from "./table-body";
+import DebouncedInput from "./debounced-input";
 
 interface Props {
   columns: ColumnDef<productType>[];
   body: productType[];
+  columnFilters: ColumnFiltersState;
+  setColumnFilters: Dispatch<SetStateAction<ColumnFiltersState>>;
 }
-export default function ReactTableVirtualized({ columns, body }: Props) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+export default function ReactTableVirtualized({
+  columns,
+  body,
+  columnFilters,
+  setColumnFilters,
+}: Props) {
   const [data, _setData] = useState(body);
 
   const table = useReactTable({
     data,
     columns,
+    filterFns: {},
     state: {
-      sorting,
+      columnFilters,
     },
-    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     debugTable: true,
+    getFilteredRowModel: getFilteredRowModel(),
+    debugHeaders: true,
+    debugColumns: false,
   });
 
   const { rows } = table.getRowModel();
@@ -42,13 +55,26 @@ export default function ReactTableVirtualized({ columns, body }: Props) {
   });
 
   return (
-    <div ref={parentRef}>
-      <div className={`h-[${virtualizer.getTotalSize()}px]`}>
-        <table>
-          <TableHead headerGroups={table.getHeaderGroups()} />
-          <TableBody rows={rows} virtualizer={virtualizer} />
-        </table>
-      </div>
+    <div ref={parentRef} className={`h-[${virtualizer.getTotalSize()}px]`}>
+      {table.getHeaderGroups().map((groups) =>
+        groups.headers.map((header) =>
+          header.column.getCanFilter() ? (
+            <div>
+              <DebouncedInput
+                className="w-36 border shadow rounded"
+                onChange={(value) => header.column.setFilterValue(value)}
+                placeholder={`Search...`}
+                type="text"
+                value={(header.column.getFilterValue() ?? "") as string}
+              />
+            </div>
+          ) : null,
+        ),
+      )}
+      <table>
+        <TableHead headerGroups={table.getHeaderGroups()} />
+        <TableBody rows={rows} virtualizer={virtualizer} />
+      </table>
     </div>
   );
 }
