@@ -5,13 +5,14 @@ import { Virtualizer } from "@tanstack/react-virtual";
 interface Props {
   rows: Row<productType>[];
   virtualizer: Virtualizer<HTMLDivElement, Element>;
+  expanded: boolean;
 }
-export default function TableBody({ rows, virtualizer }: Props) {
+export default function TableBody({ rows, virtualizer, expanded }: Props) {
   return (
     <tbody>
       {virtualizer.getVirtualItems().map((virtualRow) => {
         const row = rows[virtualRow.index];
-        return (
+        return expanded ? (
           <tr key={row.id} className="h-[40px]">
             {row.getVisibleCells().map((cell) => {
               return (
@@ -21,7 +22,7 @@ export default function TableBody({ rows, virtualizer }: Props) {
               );
             })}
           </tr>
-        );
+        ) : null;
       })}
     </tbody>
   );

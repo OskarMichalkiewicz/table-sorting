@@ -1,8 +1,8 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
-  ColumnDef,
   ColumnFiltersState,
+  SortingState,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
@@ -14,35 +14,86 @@ import TableBody from "./table-body";
 import DebouncedInput from "./debounced-input";
 
 interface Props {
-  columns: ColumnDef<productType>[];
   body: productType[];
   columnFilters: ColumnFiltersState;
   setColumnFilters: Dispatch<SetStateAction<ColumnFiltersState>>;
+  sorting: SortingState;
+  setSorting: Dispatch<SetStateAction<SortingState>>;
   renderSearch: boolean;
+  expanded: boolean;
+  subcategory: { name: string; id: string; show: boolean };
+  category: { name: string; id: string; show: boolean };
 }
 export default function ReactTableVirtualized({
-  columns,
   body,
   columnFilters,
   setColumnFilters,
   renderSearch,
+  expanded,
+  setSorting,
+  sorting,
+  subcategory,
+  category,
 }: Props) {
-  const [data, _setData] = useState(body);
-
+  const columns = useMemo(
+    () => [
+      {
+        header: category.show ? category.name : "",
+        id: category.id,
+        meta: category.show ? "h-[80px] text-xl" : "",
+        enableSorting: false,
+        columns: [
+          {
+            header: subcategory.show ? subcategory.name : "",
+            id: subcategory.id,
+            meta: subcategory.show ? "h-10" : "",
+            enableSorting: false,
+            columns: [
+              {
+                accessorKey: "index",
+                header: () => <span>Id</span>,
+                enableColumnFilter: false,
+                enableSorting: false,
+              },
+              {
+                accessorKey: "name",
+                header: () => <span>Name</span>,
+                enableColumnFilter: true,
+                enableSorting: false,
+              },
+              {
+                accessorKey: "price",
+                header: () => <span>Price</span>,
+                enableColumnFilter: false,
+                enableSorting: true,
+              },
+              {
+                accessorKey: "quantity",
+                header: () => <span>Quantity</span>,
+                enableColumnFilter: false,
+                enableSorting: false,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    [category, subcategory],
+  );
   const table = useReactTable({
-    data,
+    data: body,
     columns,
     filterFns: {},
     state: {
       columnFilters,
+      sorting,
     },
+    onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    debugTable: true,
     getFilteredRowModel: getFilteredRowModel(),
-    debugHeaders: true,
-    debugColumns: false,
+    autoResetExpanded: false,
   });
 
   const { rows } = table.getRowModel();
@@ -56,31 +107,41 @@ export default function ReactTableVirtualized({
   });
 
   return (
-    <div
-      ref={parentRef}
-      className={`text-left h-[${virtualizer.getTotalSize()}px]`}
-    >
+    <div ref={parentRef} className="text-left">
+      {renderSearch &&
+        table.getHeaderGroups().map((groups) =>
+          groups.headers.map(({ column }) =>
+            column.getCanSort() ? (
+              <button
+                key={column.id}
+                className="fixed top-8 h-12 w-40 border border-slate-900 bg-slate-800"
+                onClick={column.getToggleSortingHandler()}
+              >
+                sort by price
+              </button>
+            ) : null,
+          ),
+        )}
       {renderSearch &&
         table
           .getHeaderGroups()
           .map((groups) =>
-            groups.headers.map((header) =>
-              header.column.getCanFilter() ? (
+            groups.headers.map(({ column }) =>
+              column.getCanFilter() ? (
                 <DebouncedInput
-                  className="fixed h-6 top-0 w-full border bg-slate-600 text-slate-100"
-                  onChange={(value) => header.column.setFilterValue(value)}
+                  key={column.id}
+                  className="fixed top-0 w-40 border px-2 h-8 border-slate-900 bg-slate-800"
+                  onChange={(value) => column.setFilterValue(value)}
                   placeholder={`Search...`}
                   type="text"
-                  value={(header.column.getFilterValue() ?? "") as string}
+                  value={(column.getFilterValue() ?? "") as string}
                 />
               ) : null,
             ),
           )}
-      <table
-        className={`w-full bg-slate-950 text-slate-100 ${renderSearch ? "mt-6" : ""}`}
-      >
-        <TableHead headerGroups={table.getHeaderGroups()} />
-        <TableBody rows={rows} virtualizer={virtualizer} />
+      <table className="w-full">
+        <TableHead headerGroups={table.getHeaderGroups()} expanded={expanded} />
+        <TableBody rows={rows} virtualizer={virtualizer} expanded={expanded} />
       </table>
     </div>
   );

@@ -27,5 +27,15 @@ const testData = range(0, 10).map((catId) => ({
 export type dataType = typeof testData;
 export type productType =
   (typeof testData)[0]["subcategories"][0]["products"][0];
+export const categoriesMap = testData
+  .map((category) => category)
+  .reduce((prev, curr) => {
+    return {
+      ...prev,
+      [curr.name]: curr.subcategories.reduce((prev, curr) => {
+        return { ...prev, [curr.name]: true };
+      }, {}),
+    };
+  }, {});
 
 export default testData;
