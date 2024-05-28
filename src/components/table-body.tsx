@@ -12,7 +12,7 @@ export default function TableBody({ rows, virtualizer }: Props) {
       {virtualizer.getVirtualItems().map((virtualRow) => {
         const row = rows[virtualRow.index];
         return (
-          <tr key={row.id} className={`h-[${virtualRow.size}px]`}>
+          <tr key={row.id} className="h-[40px]">
             {row.getVisibleCells().map((cell) => {
               return (
                 <td key={cell.id}>

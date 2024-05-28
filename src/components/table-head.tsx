@@ -11,11 +11,12 @@ export default function TableHead({ headerGroups }: Props) {
         {headerGroups.map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
+              const { meta } = header.column.columnDef;
               return (
                 <th
                   key={header.id}
                   colSpan={header.colSpan}
-                  style={{ width: header.getSize() }}
+                  className={meta ? (meta as { class: string }).class : "h-10"}
                 >
                   {flexRender(
                     header.column.columnDef.header,
