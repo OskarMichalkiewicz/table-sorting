@@ -117,7 +117,7 @@ export default function ReactTableVirtualized({
                 className="fixed top-8 h-12 w-40 border border-slate-900 bg-slate-800"
                 onClick={column.getToggleSortingHandler()}
               >
-                sort by price
+                {`Sort by price (${{ asc: "▲", desc: "▼", none: "-" }[column.getIsSorted() || "none"]})`}
               </button>
             ) : null,
           ),
