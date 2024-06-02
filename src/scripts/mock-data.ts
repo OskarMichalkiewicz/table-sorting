@@ -24,18 +24,34 @@ const testData = range(0, 10).map((catId) => ({
     })),
   })),
 }));
-export type dataType = typeof testData;
-export type productType =
-  (typeof testData)[0]["subcategories"][0]["products"][0];
-export const categoriesMap = testData
-  .map((category) => category)
-  .reduce((prev, curr) => {
+
+export type expandType = {
+  name: string;
+  index: string;
+  quantity?: number;
+  price?: number;
+  subRow: expandType[];
+  category?: string;
+};
+
+export const expandData = testData.map(({ subcategories, name, catId }) => {
+  return subcategories.reduce((prev) => {
     return {
       ...prev,
-      [curr.name]: curr.subcategories.reduce((prev, curr) => {
-        return { ...prev, [curr.name]: true };
-      }, {}),
+      category: name,
+      index: catId.toString(),
+      subRow: subcategories.map(({ subCatId, name: subCatName, products }) => {
+        return products.reduce((acc) => {
+          return {
+            ...acc,
+            category: subCatName,
+            index: subCatId,
+            subRow: products,
+          };
+        }, {});
+      }),
     };
   }, {});
+}) as expandType[];
 
 export default testData;

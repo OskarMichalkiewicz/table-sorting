@@ -1,19 +1,30 @@
 import { Row, flexRender } from "@tanstack/react-table";
-import { productType } from "../scripts/mock-data";
 import { Virtualizer } from "@tanstack/react-virtual";
 
-interface Props {
-  rows: Row<productType>[];
+interface Props<T> {
+  rows: Row<T>[];
   virtualizer: Virtualizer<HTMLDivElement, Element>;
-  expanded: boolean;
 }
-export default function TableBody({ rows, virtualizer, expanded }: Props) {
+export default function TableBody<T>({ rows, virtualizer }: Props<T>) {
   return (
-    <tbody>
+    <tbody
+      className="relative top-8"
+      style={{
+        height: `${virtualizer.getTotalSize()}px`,
+      }}
+    >
       {virtualizer.getVirtualItems().map((virtualRow) => {
         const row = rows[virtualRow.index];
-        return expanded ? (
-          <tr key={row.id} className="h-[40px]">
+        return (
+          <tr
+            data-index={virtualRow.index}
+            ref={(node) => virtualizer.measureElement(node)}
+            key={row.id}
+            className="absolute w-full grid grid-cols-5"
+            style={{
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+          >
             {row.getVisibleCells().map((cell) => {
               return (
                 <td key={cell.id}>
@@ -22,7 +33,7 @@ export default function TableBody({ rows, virtualizer, expanded }: Props) {
               );
             })}
           </tr>
-        ) : null;
+        );
       })}
     </tbody>
   );
